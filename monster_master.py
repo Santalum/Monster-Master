@@ -78,7 +78,9 @@ def text_objects(text, font):
 
 
 def introMenu():
-	pygame.mixer.music.load("music/0.wav")
+	gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
+		pygame.FULLSCREEN)
+	pygame.mixer.music.load("music/xm/oval.xm")
 	pygame.mixer.music.play(1, 0)
 	intro_screen('Static Studio', 3, 0)
 	intro_screen('Proudly Presents', 3, 1)
@@ -101,7 +103,7 @@ def intro_screen(text, showTime, ndx):
 def menu_screen(masterMove):
 	for x in range(0, (13) * fps):
 		#gameDisplay.fill(green)
-		gameDisplay.blit(bg0Img, [0, 0], (0, 3 * 768, 1366, 768))
+		gameDisplay.blit(bg1Img, [0, 0], (0, 3 * 768, 1366, 768))
 		master(master_x, dispHeight - x * masterMove, 1)
 		pygame.display.update()
 		clock.tick(fps)
@@ -113,13 +115,13 @@ def menu_screen(masterMove):
 
 def master(x, y, direction):
 	if direction == 0:  # down
-		gameDisplay.blit(masterImg, (x, y), (0, 0, 32, 64))
+		gameDisplay.blit(master1Img, (x, y), (0, 0, 32, 64))
 	elif direction == 1:  # up
-		gameDisplay.blit(masterImg, (x, y), (32, 0, 32, 64))
+		gameDisplay.blit(master1Img, (x, y), (32, 0, 32, 64))
 	elif direction == 2:  # right
-		gameDisplay.blit(masterImg, (x, y), (64, 0, 32, 64))
+		gameDisplay.blit(master1Img, (x, y), (64, 0, 32, 64))
 	elif direction == 3:  # left
-		gameDisplay.blit(masterImg, (x, y), (96, 0, 32, 96))
+		gameDisplay.blit(master1Img, (x, y), (96, 0, 32, 96))
 
 
 def generateLevel():
@@ -207,7 +209,7 @@ class Monster:
 		pygame.draw.line(gameDisplay, green, [self.x + catWidth - cateyeWidth,
 			self.y + cateyeHeight], [self.x + catWidth - cateyeWidth, 635], 1)
 
-
+# introMenu()
 GMaster = Master()
 GMonster = Monster()
 GMaster.name = "Normal"
@@ -215,7 +217,7 @@ GMaster.x = 0
 GMaster.y = dispHeight - 64
 masterDirection = 'right'
 catmoveRight = True
-pygame.mixer.music.load("music/iamacat.xm")
+pygame.mixer.music.load("music/xm/noist_transp.xm")
 pygame.mixer.music.play(-1, 0)
 label = myfont.render("", 1, white)
 music_on = True
@@ -273,7 +275,7 @@ while (1):
 			pygame.display.update()
 			gamecomplete = True
 			if victorymusic:
-				pygame.mixer.music.load("music/noist_transp.xm")
+				pygame.mixer.music.load("music/xm/nobody.xm")
 				pygame.mixer.music.play(-1, 0)
 				victorymusic = False
 		if not gamecomplete:
