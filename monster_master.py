@@ -15,6 +15,9 @@ black = (0, 0, 0)
 red = (255, 0, 0)
 green = (0, 255, 0)
 blue = (0, 0, 255)
+magenta = (255, 0, 255)
+cyan = (0, 255, 255)
+yellow = (255, 255, 0)
 bg = black
 masterHealth = 3
 cateyeHeight = 16
@@ -70,6 +73,8 @@ orb = pygame.image.load('sprite/item/orb.png')
 #nekodearu
 neko1Img = pygame.image.load('sprite/cat/neko1.png')
 neko2Img = pygame.image.load('sprite/cat/neko2.png')
+#particle
+particle0Img = pygame.image.load('sprite/particle/0anim.png')
 
 
 def text_objects(text, font):
@@ -78,8 +83,6 @@ def text_objects(text, font):
 
 
 def introMenu():
-	gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
-		pygame.FULLSCREEN)
 	pygame.mixer.music.load("music/xm/oval.xm")
 	pygame.mixer.music.play(1, 0)
 	intro_screen('Static Studio', 3, 0)
@@ -129,6 +132,25 @@ def generateLevel():
 		for y in range(0, dispHeight / 128 + 1):
 			gameDisplay.blit(floor0Img, (x * 128, y * 128))
 	# pygame.display.update ()
+
+
+class Particle:
+	def __init__(self):
+		self.x = dispWidth / 2
+		self.y = dispHeight / 2
+		self.change_x = 0
+		self.change_y = 0
+		self.appearance = particle0Img
+		self.index = 0
+
+	def move(self):
+		self.x += self.change_x
+		self.y += self.change_y
+
+	def draw(self):
+		# gameDisplay.blit(self.appearance, (self.x, self.y))
+		gameDisplay.blit(self.appearance, (self.x, self.y),
+				(0, self.index * 33, 33, 33))
 
 
 class Master:
@@ -210,6 +232,7 @@ class Monster:
 			self.y + cateyeHeight], [self.x + catWidth - cateyeWidth, 635], 1)
 
 # introMenu()
+GParticle = Particle()
 GMaster = Master()
 GMonster = Monster()
 GMaster.name = "Normal"
@@ -243,18 +266,34 @@ def hitDetec(justhit):
 	return justhit
 
 
+# wagahai wa yuki de aru
 def drawSnow():
 	for x in range(0, dispWidth, 256):
 		for y in range(0, dispHeight, 256):
+			star_colour_i = random.randint(0, 6)
+			if star_colour_i == 0:
+				star_colour = white
+			elif star_colour_i == 1:
+				star_colour = red
+			elif star_colour_i == 2:
+				star_colour = green
+			elif star_colour_i == 3:
+				star_colour = blue
+			elif star_colour_i == 4:
+				star_colour = cyan
+			elif star_colour_i == 5:
+				star_colour = magenta
+			elif star_colour_i == 6:
+				star_colour = yellow
 			star_x = random.randint(0, dispWidth)
 			star_y = random.randint(0, dispHeight)
-			pygame.draw.line(gameDisplay, white, [star_x - 3, star_y - 3],
+			pygame.draw.line(gameDisplay, star_colour, [star_x - 3, star_y - 3],
 				[star_x + 3, star_y + 3], 1)
-			pygame.draw.line(gameDisplay, white, [star_x, star_y - 4],
+			pygame.draw.line(gameDisplay, star_colour, [star_x, star_y - 4],
 			[star_x, star_y + 4], 1)
-			pygame.draw.line(gameDisplay, white, [star_x + 3, star_y - 3],
+			pygame.draw.line(gameDisplay, star_colour, [star_x + 3, star_y - 3],
 				[star_x - 3, star_y + 3], 1)
-			pygame.draw.line(gameDisplay, white, [star_x - 4, star_y],
+			pygame.draw.line(gameDisplay, star_colour, [star_x - 4, star_y],
 				[star_x + 4, star_y], 1)
 
 while (1):
@@ -297,6 +336,7 @@ while (1):
 			else:
 				catmoveRight = True
 
+#draw monster
 			GMonster.move()
 			GMonster.draw()
 			if tickcount > fps / 3:
@@ -314,12 +354,17 @@ while (1):
 				GMaster.appearance = master1Img
 			GMaster.move()
 			GMaster.draw(masterDirection)
+			# particle time
+			if GParticle.index < 9:
+				GParticle.index += 1
+			else:
+				GParticle.index = 0
+			GParticle.draw()
 			# pygame.draw.rect(gameDisplay, red, (GMaster.x+4,GMaster.y,24,64), 0)
 			# draw hitbox
 			pygame.display.update()
 			clock.tick(fps)
 			tickcount += 1
-
 		for event in pygame.event.get():
 			if event.type == pygame.QUIT:
 				pygame.quit()
@@ -352,7 +397,7 @@ while (1):
 					pressed_down = False
 				elif event.key == K_SPACE:
 					GMaster.x = 0
-					GMaster.y = 574
+					GMaster.y = dispHeight - 64
 					GMaster.name = "Normal"
 					GMaster.change_x = 0
 					GMaster.change_y = 0
@@ -382,8 +427,9 @@ while (1):
 		if pressed_right:
 			GMaster.change_x = 8
 			masterDirection = 'right'
-		#if pressed_up:
-		#	GMaster.change_y=-4
-		#if pressed_down:
-		#	GMaster.change_y=4
-
+		if pressed_up:
+			GMaster.change_y = -4
+		if pressed_down:
+			GParticle.draw()
+			#GParticle.change_y = -4
+			#GParticle.move()
