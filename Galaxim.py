@@ -3,7 +3,7 @@
 from __future__ import division
 import pygame
 #import sys
-import time
+#import time
 import math
 import random
 from pygame.locals import *
@@ -55,7 +55,7 @@ def inpCtrl():
 						pygame.FULLSCREEN)
 					fullscreen = True
 				else:
-					gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))
+					gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))  # lint:ok
 					fullscreen = False
 			elif event.key == K_m:
 				if music_on:
@@ -67,6 +67,7 @@ def inpCtrl():
 			elif event.key == K_ESCAPE:
 				pygame.quit()
 				quit()
+
 
 # wagahai wa yuki de aru
 def drawSnow():
@@ -130,12 +131,10 @@ class Particle:
 			(int(self.size * 32), int(self.size * 32)))
 		gameDisplay.blit(ballsprite, (self.x, self.y))
 
-
 GParticle = Particle()
 
-while (1):
-	gameDisplay.fill([0, 0, 0])
-	drawSnow()
+
+def drawPlanet():
 	pygame.draw.arc(gameDisplay, green,
 		(dispWidth // 2 - 96, dispHeight // 2 - 16, 192, 32), 0, math.pi, 4)
 	# move particle in front of circle
@@ -149,22 +148,22 @@ while (1):
 	pygame.draw.arc(gameDisplay, green,
 		(dispWidth // 2 - 96, dispHeight // 2 - 16, 196, 32), math.pi, 2 * math.pi, 4)
 	#GParticle.change_x = (GParticle.index - 4) * 2
-	if bounce:
-		GParticle.change_y -= 1
-		#GParticle.change_x += 1
-	else:
-		GParticle.change_y += 1
-		#GParticle.change_x -= 1
+	#if bounce:
+		#GParticle.change_y -= 1
+		##GParticle.change_x += 1
+	#else:
+		#GParticle.change_y += 1
+		##GParticle.change_x -= 1
 	GParticle.moveangular()
 	#pygame.draw.ellipse(gameDisplay, green,
 		#(dispWidth // 2 - 64, dispHeight // 2 - 32, 128, 64), 1)
 	#GParticle.move()
 	if GParticle.y >= dispHeight // 2 + 64:
-		bounce = True
+		#bounce = True
 		GParticle.change_y = 0
 		GParticle.change_x = 0
 	elif GParticle.y <= dispHeight // 2 - 64:
-		bounce = False
+		#bounce = False
 		#GParticle.change_y = 0
 		GParticle.change_x = 0
 	#elif GParticle >= dispHeight // 2:
@@ -178,6 +177,12 @@ while (1):
 		GParticle.rangle += math.pi / 2 / 9
 		GParticle.size = 3 / 4 - 1 / 4 * math.sin(GParticle.rangle)
 		#print(GParticle.rangle, GParticle.size, math.sin(GParticle.rangle))
+
+
+while (1):
+	gameDisplay.fill([0, 0, 0])
+	drawSnow()
+	drawPlanet()
 	pygame.display.update()
 	clock.tick(fps)
 	inpCtrl()

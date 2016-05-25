@@ -1,6 +1,8 @@
 #!/usr/bin/env python
 # -*- coding: UTF-8 -*-
+from __future__ import division
 import pygame
+import math
 #import sys
 import time
 import random
@@ -25,6 +27,16 @@ cateyeWidth = 18
 catWidth = 64
 catHeight = 48
 
+
+catmoveRight = True
+music_on = True
+victorymusic = True
+gamecomplete = False
+justhit = False
+fullscreen = False
+intro = True
+mainmusic = False
+
 pressed_down = False
 pressed_left = False
 pressed_right = False
@@ -37,8 +49,8 @@ dispHeight = 600  # 768  # 600  # 768
 wallSize = 32
 cellSize = 16
 x_move = 0
-master_x = dispWidth / 2 - 16
-master_y = dispHeight / 2 - 32
+master_x = 0
+master_y = dispHeight - 64
 master_direction = 0
 show_inventory = False
 tickcount = 0
@@ -83,37 +95,52 @@ def text_objects(text, font):
 
 
 def introMenu():
-	pygame.mixer.music.load("music/xm/oval.xm")
-	pygame.mixer.music.play(1, 0)
-	intro_screen('Static Studio', 3, 0)
-	intro_screen('Proudly Presents', 3, 1)
-	intro_screen('Monster Master', 6, 2)
+	pygame.mixer.music.load("music/xm/WoA.xm")
+	pygame.mixer.music.play(-1, 0)
+	intro_screen('Static Studio', 2, 0)
+	intro_screen('Proudly Presents', 2, 1)
+	intro_screen('Monster Master', 2, 2)
 	#masterMove = distance / (13*fps)
 	menu_screen((dispHeight / 2) / (13 * fps))	 # 0.34871794871)
 
 
 def intro_screen(text, showTime, ndx):
-	largeText = pygame.font.Font('freesansbold.ttf', (dispWidth / 10))
-	TextSurf, TextRect = text_objects(text, largeText)
-	TextRect.center = ((dispWidth / 2), (master_y))
-	gameDisplay.fill(black)
-	gameDisplay.blit(bg0Img, [0, 0], (0, ndx * 768, 1366, 768))
-	gameDisplay.blit(TextSurf, TextRect)
-	pygame.display.update()
-	time.sleep(showTime)
+	if intro:
+		largeText = pygame.font.Font('freesansbold.ttf', (dispWidth // 10))
+		TextSurf, TextRect = text_objects(text, largeText)
+		TextRect.center = ((dispWidth // 2), (dispHeight // 2))
+		gameDisplay.fill(black)
+		bgImgDsp = bg0Img.subsurface(0, ndx * 768, 1366, 768)
+		bgImgDsp = pygame.transform.scale(bgImgDsp,
+			(dispWidth, dispHeight))
+		#gameDisplay.blit(bg0Img, [0, 0], (0, ndx * 768, 1366, 768))
+		gameDisplay.blit(bgImgDsp, [0, 0], (0, 0, 1366, 768))
+		gameDisplay.blit(TextSurf, TextRect)
+		pygame.display.update()
+		for x in range(0, showTime * fps):
+			inpCtrl()
+			clock.tick(fps)
+			if not intro:
+				break
 
 
 def menu_screen(masterMove):
-	for x in range(0, (13) * fps):
-		#gameDisplay.fill(green)
-		gameDisplay.blit(bg1Img, [0, 0], (0, 3 * 768, 1366, 768))
-		master(master_x, dispHeight - x * masterMove, 1)
+	if intro:
+		for y in range(0, 2 * fps):
+			gameDisplay.fill(black)
+			drawSnow()
+			drawPlanet()
+			#gameDisplay.blit(bg1Img, [0, 0], (0, 3 * 768, 1366, 768))
+			master(master_x, -64 + 13 * y * masterMove, 2)
+			pygame.display.update()
+			clock.tick(fps)
+			inpCtrl()
+			if not intro:
+				break
+		gameDisplay.blit(bg0Img, [0, 0], (0, 3 * 768, 1366, 768))
+		master(master_x, master_y, 0)
 		pygame.display.update()
-		clock.tick(fps)
-	gameDisplay.blit(bg0Img, [0, 0], (0, 3 * 768, 1366, 768))
-	master(master_x, master_y, 0)
-	pygame.display.update()
-	time.sleep(0.2)
+		#time.sleep(0.2)
 
 
 def master(x, y, direction):
@@ -128,7 +155,7 @@ def master(x, y, direction):
 
 
 def generateLevel():
-	for x in range(0, dispWidth / 128 + 1):
+	for x in range(0, dispWidth // 128 + 1):
 		for y in range(0, dispHeight / 128 + 1):
 			gameDisplay.blit(floor0Img, (x * 128, y * 128))
 	# pygame.display.update ()
@@ -136,21 +163,34 @@ def generateLevel():
 
 class Particle:
 	def __init__(self):
-		self.x = dispWidth / 2
-		self.y = dispHeight / 2
+		self.x = dispWidth // 2 - 16 - 60
+		self.y = dispHeight // 2 - 12
 		self.change_x = 0
 		self.change_y = 0
 		self.appearance = particle0Img
+		# initial frame index
 		self.index = 0
+		# initial angle of movement
+		self.angle = 0
+		self.rangle = 0
+		self.speed = 1
+		self.size = 0.75
 
 	def move(self):
 		self.x += self.change_x
 		self.y += self.change_y
 
+	def moveangular(self):
+		self.x += math.sin(self.rangle) * self.speed
+		self.y -= math.cos(self.rangle) * self.speed * 0.2
+
 	def draw(self):
 		# gameDisplay.blit(self.appearance, (self.x, self.y))
-		gameDisplay.blit(self.appearance, (self.x, self.y),
-				(0, self.index * 33, 33, 33))
+		ballsprite = self.appearance.subsurface(0, self.index * 32, 32, 32)
+		ballsprite = pygame.transform.rotate(ballsprite, self.angle)
+		ballsprite = pygame.transform.scale(ballsprite,
+			(int(self.size * 32), int(self.size * 32)))
+		gameDisplay.blit(ballsprite, (self.x, self.y))
 
 
 class Master:
@@ -168,7 +208,7 @@ class Master:
 
 		# Master name
 		self.name = 'Normal'
-		self.direction = 'down'
+		self.direction = 'right'
 		self.appearance = master1Img
 
 	# Class Methods ---
@@ -176,19 +216,19 @@ class Master:
 		self.x += self.change_x
 		self.y += self.change_y
 
-	def draw(self, direction):
+	def draw(self):
 		if self.name == 'Ghost':
 			self.appearance = master2Img
-		if direction == 'down':
+		if self.direction == 'down':
 			gameDisplay.blit(self.appearance, (self.x, self.y), (0, 0, 32, 64))
-		elif direction == 'up':
+		elif self.direction == 'up':
 			gameDisplay.blit(self.appearance, (self.x, self.y), (32, 0, 32, 64))
-		elif direction == 'right':
+		elif self.direction == 'right':
 			gameDisplay.blit(self.appearance, (self.x, self.y), (64, 0, 32, 64))
 			# if self.weapon == 'sword':
 			#	sword = pygame.transform.flip(sword0Img, 0, 1)
 			#	gameDisplay.blit(sword, (self.x + 13, self.y + 45))
-		elif direction == 'left':
+		elif self.direction == 'left':
 			gameDisplay.blit(self.appearance, (self.x, self.y), (96, 0, 32, 96))
 		#gameDisplay.blit(Mastersrc,(self.x,dispHeight-self.y))
 		#pygame.draw.circle(gameDisplay, self.color,
@@ -231,26 +271,143 @@ class Monster:
 		pygame.draw.line(gameDisplay, green, [self.x + catWidth - cateyeWidth,
 			self.y + cateyeHeight], [self.x + catWidth - cateyeWidth, 635], 1)
 
-# introMenu()
 GParticle = Particle()
+
+
+def drawPlanet():
+	pygame.draw.arc(gameDisplay, green,
+		(dispWidth // 2 - 96, dispHeight // 2 - 16, 192, 32), 0, math.pi, 4)
+	# move particle in front of circle
+	if (GParticle.rangle / math.pi) % 2 >= 1:
+		pygame.draw.circle(gameDisplay, red, (dispWidth // 2, dispHeight // 2), 32, 0)
+	# particle time
+	GParticle.draw()
+	# move particle behind circle
+	if (GParticle.rangle / math.pi) % 2 < 1:
+		pygame.draw.circle(gameDisplay, red, (dispWidth // 2, dispHeight // 2), 32, 0)
+	pygame.draw.arc(gameDisplay, green,
+		(dispWidth // 2 - 96, dispHeight // 2 - 16, 196, 32), math.pi, 2 * math.pi, 4)
+	#GParticle.change_x = (GParticle.index - 4) * 2
+	#if bounce:
+		#GParticle.change_y -= 1
+		##GParticle.change_x += 1
+	#else:
+		#GParticle.change_y += 1
+		##GParticle.change_x -= 1
+	GParticle.moveangular()
+	#pygame.draw.ellipse(gameDisplay, green,
+		#(dispWidth // 2 - 64, dispHeight // 2 - 32, 128, 64), 1)
+	#GParticle.move()
+	if GParticle.y >= dispHeight // 2 + 64:
+		#bounce = True
+		GParticle.change_y = 0
+		GParticle.change_x = 0
+	elif GParticle.y <= dispHeight // 2 - 64:
+		#bounce = False
+		#GParticle.change_y = 0
+		GParticle.change_x = 0
+	#elif GParticle >= dispHeight // 2:
+		#GParticle.change_y += 2
+	if GParticle.index < 9:
+		GParticle.index += 1
+		#GParticle.x += 8
+	else:
+		GParticle.index = 0
+		GParticle.angle += 10
+		GParticle.rangle += math.pi / 2 / 9
+		GParticle.size = 3 / 4 - 1 / 4 * math.sin(GParticle.rangle)
+		#print(GParticle.rangle, GParticle.size, math.sin(GParticle.rangle))
+
 GMaster = Master()
 GMonster = Monster()
 GMaster.name = "Normal"
 GMaster.x = 0
 GMaster.y = dispHeight - 64
 masterDirection = 'right'
-catmoveRight = True
-pygame.mixer.music.load("music/xm/noist_transp.xm")
-pygame.mixer.music.play(-1, 0)
 label = myfont.render("", 1, white)
-music_on = True
-
 GMonster.x = 20
 GMonster.y = 20
-victorymusic = True
-gamecomplete = False
-justhit = False
-fullscreen = False
+
+
+def inpCtrl():
+	global fullscreen
+	global music_on
+	global pressed_right
+	global pressed_left
+	global pressed_up
+	global pressed_down
+	global intro
+	for event in pygame.event.get():
+		if event.type == pygame.QUIT:
+			pygame.quit()
+			quit()
+			# if event.key == pygame.K_DOWN:
+			#	GMaster.change_x=0
+			#	GMaster.change_y=8
+			#	masterDirection='down'
+			# if event.key == pygame.K_UP:
+			#	GMaster.change_x=0
+			#	GMaster.change_y=-8
+			#	masterDirection='up'
+		elif event.type == pygame.KEYDOWN:          # check for key presses
+			if event.key == pygame.K_LEFT:        # left arrow turns left
+				pressed_left = True
+			elif event.key == pygame.K_RIGHT:     # right arrow turns right
+				pressed_right = True
+			elif event.key == pygame.K_UP:        # up arrow goes up
+				pressed_up = True
+			elif event.key == pygame.K_DOWN:     # down arrow goes down
+				pressed_down = True
+		elif event.type == pygame.KEYUP:            # check for key releases
+			if event.key == pygame.K_LEFT:        # left arrow turns left
+				pressed_left = False
+			elif event.key == pygame.K_RIGHT:     # right arrow turns right
+				pressed_right = False
+			elif event.key == pygame.K_UP:        # up arrow goes up
+				pressed_up = False
+			elif event.key == pygame.K_DOWN:     # down arrow goes down
+				pressed_down = False
+			elif event.key == K_SPACE:
+				GMaster.x = 0
+				GMaster.y = dispHeight - 64
+				GMaster.name = "Normal"
+				GMaster.change_x = 0
+				GMaster.change_y = 0
+				GMaster.hitpoints = 3
+			#elif event.key == K_RETURN:
+			elif event.key == K_m:
+				if music_on:
+					pygame.mixer.music.pause()
+					music_on = False
+				else:
+					pygame.mixer.music.unpause()
+					music_on = True
+			elif event.key == K_ESCAPE:
+				if intro:
+					intro = False
+				elif not intro:
+					pygame.quit()
+					quit()
+			elif event.key == K_f:
+				if not fullscreen:
+					gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
+						pygame.FULLSCREEN)
+					fullscreen = True
+				else:
+					gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))  # lint:ok
+					fullscreen = False
+	if pressed_left:
+		GMaster.change_x = -8
+		GMaster.direction = 'left'
+	if pressed_right:
+		GMaster.change_x = 8
+		GMaster.direction = 'right'
+	if pressed_up:
+		GMaster.change_y = -4
+		GMaster.direction = 'up'
+	if pressed_down:
+		GMaster.change_y = 4
+		GMaster.direction = 'down'
 
 
 def hitDetec(justhit):
@@ -297,6 +454,9 @@ def drawSnow():
 				[star_x + 4, star_y], 1)
 
 while (1):
+	if intro:
+		introMenu()
+		intro = False
 	if GMaster.hitpoints <= 0:  # Game over
 		GMaster.x = 0
 		GMaster.y = dispHeight - 64
@@ -309,8 +469,9 @@ while (1):
 		if GMaster.x >= dispWidth - 24:  # Game completed
 			gameDisplay.fill(black)
 			drawSnow()
-			victorylabel = myfont.render("Victorious", 0, blue)
-			gameDisplay.blit(victorylabel, (dispWidth / 2 - 80, dispHeight / 2))
+			drawPlanet()
+			victorylabel = myfont.render("Victorious", 0, green)
+			gameDisplay.blit(victorylabel, (dispWidth // 2 - 96, dispHeight / 2 + 16))
 			pygame.display.update()
 			gamecomplete = True
 			if victorymusic:
@@ -319,9 +480,14 @@ while (1):
 				victorymusic = False
 		if not gamecomplete:
 			gameDisplay.fill(black)
+			if not mainmusic:
+				pygame.mixer.music.load("music/xm/oval.xm")
+				pygame.mixer.music.play(-1, 0)
+				mainmusic = True
 			#pygame.draw.line(gameDisplay, white, [0, 640], [1366, 640], 6)
 			gameDisplay.blit(label, (100, 660))
 			drawSnow()
+			drawPlanet()
 			healthlabel = myfont.render(str(GMaster.hitpoints) + "( )", 1, red)
 			gameDisplay.blit(healthlabel, (dispWidth - 80, 30))
 			gameDisplay.blit(master1Img, (dispWidth - 45, 37), (0, 0, 32, 27))
@@ -353,83 +519,12 @@ while (1):
 				tickcount = 0
 				GMaster.appearance = master1Img
 			GMaster.move()
-			GMaster.draw(masterDirection)
+			GMaster.draw()
 			# particle time
-			if GParticle.index < 9:
-				GParticle.index += 1
-			else:
-				GParticle.index = 0
-			GParticle.draw()
 			# pygame.draw.rect(gameDisplay, red, (GMaster.x+4,GMaster.y,24,64), 0)
 			# draw hitbox
 			pygame.display.update()
-			clock.tick(fps)
-			tickcount += 1
-		for event in pygame.event.get():
-			if event.type == pygame.QUIT:
-				pygame.quit()
-				quit()
-				# if event.key == pygame.K_DOWN:
-				#	GMaster.change_x=0
-				#	GMaster.change_y=8
-				#	masterDirection='down'
-				# if event.key == pygame.K_UP:
-				#	GMaster.change_x=0
-				#	GMaster.change_y=-8
-				#	masterDirection='up'
-			elif event.type == pygame.KEYDOWN:          # check for key presses
-				if event.key == pygame.K_LEFT:        # left arrow turns left
-					pressed_left = True
-				elif event.key == pygame.K_RIGHT:     # right arrow turns right
-					pressed_right = True
-				elif event.key == pygame.K_UP:        # up arrow goes up
-					pressed_up = True
-				elif event.key == pygame.K_DOWN:     # down arrow goes down
-					pressed_down = True
-			elif event.type == pygame.KEYUP:            # check for key releases
-				if event.key == pygame.K_LEFT:        # left arrow turns left
-					pressed_left = False
-				elif event.key == pygame.K_RIGHT:     # right arrow turns right
-					pressed_right = False
-				elif event.key == pygame.K_UP:        # up arrow goes up
-					pressed_up = False
-				elif event.key == pygame.K_DOWN:     # down arrow goes down
-					pressed_down = False
-				elif event.key == K_SPACE:
-					GMaster.x = 0
-					GMaster.y = dispHeight - 64
-					GMaster.name = "Normal"
-					GMaster.change_x = 0
-					GMaster.change_y = 0
-					GMaster.hitpoints = 3
-				#elif event.key == K_RETURN:
-				elif event.key == K_m:
-					if music_on:
-						pygame.mixer.music.pause()
-						music_on = False
-					else:
-						pygame.mixer.music.unpause()
-						music_on = True
-				elif event.key == K_ESCAPE:
-					pygame.quit()
-					quit()
-				elif event.key == K_f:
-					if not fullscreen:
-						gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
-							pygame.FULLSCREEN)
-						fullscreen = True
-					else:
-						gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))
-						fullscreen = False
-		if pressed_left:
-			GMaster.change_x = -8
-			masterDirection = 'left'
-		if pressed_right:
-			GMaster.change_x = 8
-			masterDirection = 'right'
-		if pressed_up:
-			GMaster.change_y = -4
-		if pressed_down:
-			GParticle.draw()
-			#GParticle.change_y = -4
-			#GParticle.move()
+	clock.tick(fps)
+	tickcount += 1
+	inpCtrl()
+
