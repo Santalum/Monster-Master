@@ -12,14 +12,21 @@ random.seed()
 pygame.init()
 pygame.display.set_caption("Monster Master")
 myfont = pygame.font.SysFont("TakaoMincho", 40)
+myfont2 = pygame.font.SysFont("helvet", 16)
 white = (255, 255, 255)
 black = (0, 0, 0)
 red = (255, 0, 0)
+lightred = (127, 0, 0)
 green = (0, 255, 0)
+lightgreen = (0, 127, 0)
 blue = (0, 0, 255)
+darkblue = (0, 0, 127)
 magenta = (255, 0, 255)
 cyan = (0, 255, 255)
 yellow = (255, 255, 0)
+darkyellow = (127, 127, 0)
+saddlebrown = (139, 69, 19)
+sienna = (160, 82, 45)
 bg = black
 masterHealth = 3
 cateyeHeight = 16
@@ -27,15 +34,17 @@ cateyeWidth = 18
 catWidth = 64
 catHeight = 48
 
+levelcount = 1
 
 catmoveRight = True
-music_on = True
+music_on = False
 victorymusic = True
 gamecomplete = False
 justhit = False
 fullscreen = False
 intro = True
 mainmusic = False
+music_changed = False
 
 pressed_down = False
 pressed_left = False
@@ -57,7 +66,8 @@ tickcount = 0
 clock = pygame.time.Clock()
 
 gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))
-
+iconImg = pygame.image.load("sprite/master/masterh.png")
+pygame.display.set_icon(iconImg)
 #gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
 #	pygame.FULLSCREEN)
 #image defines
@@ -80,7 +90,9 @@ mush3Img = pygame.image.load('sprite/mushroom/3.png')
 wall0Img = pygame.image.load('sprite/wall/0.png')
 #monster
 monster1Img = pygame.image.load('sprite/monster/0.png')
-floor0Img = pygame.image.load('sprite/floor/3.png')
+floor0Img = pygame.image.load('sprite/floor/0.png')
+floor1Img = pygame.image.load('sprite/floor/1.png')
+floor0sImg = pygame.image.load('sprite/floor/0s.png')
 orb = pygame.image.load('sprite/item/orb.png')
 #nekodearu
 neko1Img = pygame.image.load('sprite/cat/neko1.png')
@@ -95,13 +107,30 @@ def text_objects(text, font):
 
 
 def introMenu():
-	pygame.mixer.music.load("music/xm/WoA.xm")
-	pygame.mixer.music.play(-1, 0)
+	if music_on:
+		pygame.mixer.music.load("music/xm/WoA.xm")
+		pygame.mixer.music.play(-1, 0)
 	intro_screen('Static Studio', 2, 0)
 	intro_screen('Proudly Presents', 2, 1)
 	intro_screen('Monster Master', 2, 2)
 	#masterMove = distance / (13*fps)
-	menu_screen((dispHeight / 2) / (13 * fps))	 # 0.34871794871)
+	#menu_screen((dispHeight / 2) / (13 * fps))	 # 0.34871794871)
+	if intro:
+		for y in range(0, 2 * fps):
+			gameDisplay.fill(black)
+			drawSnow()
+			drawPlanet()
+			#gameDisplay.blit(bg1Img, [0, 0], (0, 3 * 768, 1366, 768))
+			master(master_x, -64 + 13 * y * ((dispHeight / 2) / (13 * fps)), 2)
+			pygame.display.update()
+			clock.tick(fps)
+			inpCtrl()
+			if not intro:
+				break
+		gameDisplay.blit(bg0Img, [0, 0], (0, 3 * 768, 1366, 768))
+		master(master_x, master_y, 0)
+		pygame.display.update()
+		#time.sleep(0.2)
 
 
 def intro_screen(text, showTime, ndx):
@@ -124,25 +153,6 @@ def intro_screen(text, showTime, ndx):
 				break
 
 
-def menu_screen(masterMove):
-	if intro:
-		for y in range(0, 2 * fps):
-			gameDisplay.fill(black)
-			drawSnow()
-			drawPlanet()
-			#gameDisplay.blit(bg1Img, [0, 0], (0, 3 * 768, 1366, 768))
-			master(master_x, -64 + 13 * y * masterMove, 2)
-			pygame.display.update()
-			clock.tick(fps)
-			inpCtrl()
-			if not intro:
-				break
-		gameDisplay.blit(bg0Img, [0, 0], (0, 3 * 768, 1366, 768))
-		master(master_x, master_y, 0)
-		pygame.display.update()
-		#time.sleep(0.2)
-
-
 def master(x, y, direction):
 	if direction == 0:  # down
 		gameDisplay.blit(master1Img, (x, y), (0, 0, 32, 64))
@@ -155,9 +165,34 @@ def master(x, y, direction):
 
 
 def generateLevel():
-	for x in range(0, dispWidth // 128 + 1):
-		for y in range(0, dispHeight / 128 + 1):
-			gameDisplay.blit(floor0Img, (x * 128, y * 128))
+	global levelcount
+	global music_changed
+	if levelcount == 0:
+		levelcount == 2
+	if levelcount == 3:
+		levelcount = 1
+	if levelcount == 1:
+		gameDisplay.fill(white)
+		for x in range(0, dispWidth // 64 + 1):
+			for y in range(0, dispHeight // 64 + 1):
+				gameDisplay.blit(floor0sImg, (x * 64, y * 64))
+		if not music_changed:
+			if music_on:
+				pygame.mixer.music.load("music/xm/nobody.xm")
+				pygame.mixer.music.play(-1, 0)
+			music_changed = True
+	if levelcount == 2:
+		gameDisplay.fill(white)
+		for x in range(0, dispWidth // 128 + 1):
+			for y in range(0, dispHeight // 128 + 1):
+				gameDisplay.blit(floor1Img, (x * 128, y * 128))
+		if not music_changed:
+			if music_on:
+				pygame.mixer.music.load("music/xm/noist_transp.xm")
+				pygame.mixer.music.play(-1, 0)
+			music_changed = True
+
+
 	# pygame.display.update ()
 
 
@@ -199,13 +234,19 @@ class Master:
 		# Master position
 		self.x = 0
 		self.y = 0
-		# Hitpoints
+		# HP, MP, XP, level
 		self.hitpoints = 3
+		self.maxhp = 3
+		self.manapoints = 16
+		self.maxmp = 16
+		self.experiencepoints = 0
+		self.maxxp = 100
+		self.level = 1
+		self.maxlv = 2
 		# Master's vector
 		self.change_x = 0
 		self.change_y = 0
 		self.weapon = 'sword'
-
 		# Master name
 		self.name = 'Normal'
 		self.direction = 'right'
@@ -321,7 +362,7 @@ def drawPlanet():
 GMaster = Master()
 GMonster = Monster()
 GMaster.name = "Normal"
-GMaster.x = 0
+GMaster.x = dispWidth // 2
 GMaster.y = dispHeight - 64
 masterDirection = 'right'
 label = myfont.render("", 1, white)
@@ -368,12 +409,7 @@ def inpCtrl():
 			elif event.key == pygame.K_DOWN:     # down arrow goes down
 				pressed_down = False
 			elif event.key == K_SPACE:
-				GMaster.x = 0
-				GMaster.y = dispHeight - 64
-				GMaster.name = "Normal"
-				GMaster.change_x = 0
-				GMaster.change_y = 0
-				GMaster.hitpoints = 3
+				spawnMaster()
 			#elif event.key == K_RETURN:
 			elif event.key == K_m:
 				if music_on:
@@ -397,17 +433,27 @@ def inpCtrl():
 					gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))  # lint:ok
 					fullscreen = False
 	if pressed_left:
-		GMaster.change_x = -8
+		GMaster.change_x = -4
 		GMaster.direction = 'left'
+	if not pressed_left or pressed_right:
+		GMaster.change_x = 0
 	if pressed_right:
-		GMaster.change_x = 8
+		GMaster.change_x = 4
 		GMaster.direction = 'right'
 	if pressed_up:
-		GMaster.change_y = -4
-		GMaster.direction = 'up'
+		if GMaster.y > 0:
+			GMaster.change_y = -4
+			GMaster.direction = 'up'
+		else:
+			GMaster.y = 0
+	if not pressed_up or pressed_down:
+		GMaster.change_y = 0
 	if pressed_down:
-		GMaster.change_y = 4
-		GMaster.direction = 'down'
+		if GMaster.y < dispHeight - 64:
+			GMaster.change_y = 4
+			GMaster.direction = 'down'
+		else:
+			GMaster.y = dispHeight - 64
 
 
 def hitDetec(justhit):
@@ -453,71 +499,163 @@ def drawSnow():
 			pygame.draw.line(gameDisplay, star_colour, [star_x - 4, star_y],
 				[star_x + 4, star_y], 1)
 
+
+def drawHUD():
+	hplabel = myfont2.render("HP", 1, red)
+	gameDisplay.blit(hplabel, (dispWidth // 32 - 16, dispHeight // 32))
+	mplabel = myfont2.render("MP", 1, blue)
+	gameDisplay.blit(mplabel, (dispWidth // 32 - 16, dispHeight // 32 + 16))
+	xplabel = myfont2.render("XP", 1, yellow)
+	gameDisplay.blit(xplabel, (dispWidth // 32 - 16, dispHeight // 32 + 32))
+	lvlabel = myfont2.render("LV   " + str(GMaster.level), 1, green)
+	gameDisplay.blit(lvlabel, (dispWidth // 32 - 16, dispHeight // 32 + 48))
+	pygame.draw.rect(gameDisplay, lightred,
+		(dispWidth // 24, dispHeight // 32, 64, 16))
+	pygame.draw.rect(gameDisplay, red,
+		(dispWidth // 24, dispHeight // 32,
+		GMaster.hitpoints * 64 // GMaster.maxhp, 16))
+	pygame.draw.rect(gameDisplay, darkblue,
+		(dispWidth // 24, dispHeight // 32 + 16, 64, 16))
+	pygame.draw.rect(gameDisplay, blue,
+		(dispWidth // 24, dispHeight // 32 + 16,
+		GMaster.manapoints * 64 // GMaster.maxmp, 16))
+	pygame.draw.rect(gameDisplay, darkyellow,
+		(dispWidth // 24, dispHeight // 32 + 32, 64, 16))
+	pygame.draw.rect(gameDisplay, yellow,
+		(dispWidth // 24, dispHeight // 32 + 32,
+		GMaster.experiencepoints * 64 // GMaster.maxxp, 16))
+
+
+class Wall(object):
+	def __init__(self, pos):
+		walls.append(self)
+		self.rect = pygame.Rect(pos[0], pos[1], 32, 32)
+		gameDisplay.blit(wall0Img, [pos[0], pos[1]],(pos[0], pos[1], 32, 32))
+
+walls = []  # List to hold the walls
+
+
+def drawWalls():
+	# Holds the level layout in a list of strings.
+	level = [
+	"WWWWWWWWWWWWWWWWWWWWWWWW",
+	"W          w  W   W  W W",
+	"W         WWWWWWWWW  W W",
+	"W   WWWW    w  W WW  W W",
+	"W   W        WWWWWWW W W",
+	"W WWW  WWWW  WW    W W W",
+	"W   W     WW wW    W W W",
+	"W   W     W wW  WWWW WWW",
+	"W   WWW WWWW W  W WW W W",
+	"W     W   WW W  W WW W W",
+	"WWW   W   WWWWWWW WW W W",
+	"W W      WWWW W      W W",
+	"W W   WWWW WW  WWWW W  W",
+	"W     W    WW    WW W  W",
+	"W     W    WW    WW  W W",
+	"W     W     WW   WW W  W",
+	"W     W     WW   WW W  W",
+	"WWWWWWWWWWWWWWWWWWWWWWWW",
+	]
+	# Parse the level string above. W = wall
+	x = y = 0
+	for row in level:
+		for col in row:
+			if col == "W":
+				Wall((x, y))
+				pygame.draw.rect(gameDisplay, (255, 255, 255), Wall((x, y)))
+			x += 32
+		y += 32
+		x = 0
+
+
+def spawnMaster():
+	GMaster.x = dispWidth // 2
+	GMaster.y = dispHeight - 64
+	GMaster.name = "Normal"
+	GMaster.change_x = 0
+	GMaster.change_y = 0
+	GMaster.hitpoints = 3
+
 while (1):
+	GMaster.name = "Ghost"
 	if intro:
 		introMenu()
 		intro = False
 	if GMaster.hitpoints <= 0:  # Game over
-		GMaster.x = 0
-		GMaster.y = dispHeight - 64
-		GMaster.name = "Normal"
-		GMaster.change_x = 0
-		GMaster.change_y = 0
-		GMaster.hitpoints = 3
+		spawnMaster()
 	# gameDisplay.blit(bg0Img, [0, 0],(0,0*768,1366,768))
 	else:
-		if GMaster.x >= dispWidth - 24:  # Game completed
-			gameDisplay.fill(black)
-			drawSnow()
-			drawPlanet()
-			victorylabel = myfont.render("Victorious", 0, green)
-			gameDisplay.blit(victorylabel, (dispWidth // 2 - 96, dispHeight / 2 + 16))
-			pygame.display.update()
-			gamecomplete = True
-			if victorymusic:
-				pygame.mixer.music.load("music/xm/nobody.xm")
-				pygame.mixer.music.play(-1, 0)
-				victorymusic = False
+		if GMaster.x <= 0:  # level completed
+			GMaster.x = 0
+			#spawnMaster()
+			if levelcount > 1:
+				GMaster.x = dispWidth - 25
+				music_changed = False
+				levelcount -= 1
+		if GMaster.x >= dispWidth - 24:  # level completed
+			GMaster.x = dispWidth - 24
+			#spawnMaster()
+			if levelcount < 2:
+				music_changed = False
+				GMaster.x = 1
+				GMaster.experiencepoints += 3
+				levelcount += 1
+			#gameDisplay.fill(black)
+			#drawSnow()
+			#drawPlanet()
+			#victorylabel = myfont.render("Victorious", 0, green)
+			#gameDisplay.blit(victorylabel, (dispWidth // 2 - 96, dispHeight / 2 + 16))
+			#pygame.display.update()
+			#gamecomplete = True
+			#if victorymusic:
+				#pygame.mixer.music.load("music/xm/nobody.xm")
+				#pygame.mixer.music.play(-1, 0)
+				#victorymusic = False
 		if not gamecomplete:
 			gameDisplay.fill(black)
-			if not mainmusic:
-				pygame.mixer.music.load("music/xm/oval.xm")
-				pygame.mixer.music.play(-1, 0)
-				mainmusic = True
+			#if music_on:
+				#if not mainmusic:
+					#pygame.mixer.music.load("music/xm/oval.xm")
+					#pygame.mixer.music.play(-1, 0)
+					#mainmusic = True
 			#pygame.draw.line(gameDisplay, white, [0, 640], [1366, 640], 6)
 			gameDisplay.blit(label, (100, 660))
+			#drawPlanet()
+			generateLevel()
 			drawSnow()
-			drawPlanet()
-			healthlabel = myfont.render(str(GMaster.hitpoints) + "( )", 1, red)
-			gameDisplay.blit(healthlabel, (dispWidth - 80, 30))
-			gameDisplay.blit(master1Img, (dispWidth - 45, 37), (0, 0, 32, 27))
+			drawHUD()
+			#healthlabel = myfont.render(str(GMaster.hitpoints) + "( )", 1, red)
+			#gameDisplay.blit(healthlabel, (dispWidth - 80, 30))
+			#gameDisplay.blit(master1Img, (dispWidth - 45, 37), (0, 0, 32, 27))
+
 			# gameDisplay.blit(masterh, (dispWidth - 45, 33))
-			#generateLevel()
-			if GMonster.x < dispWidth - catWidth - 20 and catmoveRight:
-				GMonster.change_x = 4
-			else:
-				catmoveRight = False
-			if GMonster.x > 20 and not catmoveRight:
-				GMonster.change_x = -4
-			else:
-				catmoveRight = True
+			#if GMonster.x < dispWidth - catWidth - 20 and catmoveRight:
+				#GMonster.change_x = 4
+			#else:
+				#catmoveRight = False
+			#if GMonster.x > 20 and not catmoveRight:
+				#GMonster.change_x = -4
+			#else:
+				#catmoveRight = True
 
 #draw monster
-			GMonster.move()
-			GMonster.draw()
-			if tickcount > fps / 3:
-				gameDisplay.blit(neko1Img, (20, 660))
-				label = myfont.render(u"吾輩は猫である。", 1, white)
-				GMonster.laser()
-				if not justhit:
-					justhit = hitDetec(justhit)
-			if tickcount > fps:
-				#gameDisplay.blit(masterh, (20,660))
-				justhit = False
-				GMaster.name = 'Normal'
-				label = myfont.render(u"お前を殺す！", 1, white)
-				tickcount = 0
-				GMaster.appearance = master1Img
+			#GMonster.move()
+			#GMonster.draw()
+			#if tickcount > fps / 3:
+				#gameDisplay.blit(neko1Img, (20, 660))
+				#label = myfont.render(u"吾輩は猫である。", 1, white)
+				#GMonster.laser()
+				#if not justhit:
+					#justhit = hitDetec(justhit)
+			#if tickcount > fps:
+				##gameDisplay.blit(masterh, (20,660))
+				#justhit = False
+				#GMaster.name = 'Normal'
+				#label = myfont.render(u"お前を殺す！", 1, white)
+				#tickcount = 0
+				#GMaster.appearance = master1Img
+			#drawWalls()
 			GMaster.move()
 			GMaster.draw()
 			# particle time
