@@ -37,7 +37,7 @@ catHeight = 48
 levelcount = 1
 
 catmoveRight = True
-music_on = False
+music_on = True
 victorymusic = True
 gamecomplete = False
 justhit = False
@@ -108,13 +108,18 @@ def text_objects(text, font):
 
 def introMenu():
 	if music_on:
-		pygame.mixer.music.load("music/xm/WoA.xm")
+		#pygame.mixer.music.load("music/xm/WoA.xm")
+		pygame.mixer.music.load("music/midi/Number One_25 midi.mid")
 		pygame.mixer.music.play(-1, 0)
 	#intro_screen('Static Studio', 2, 0)
 	#intro_screen('Proudly Presents', 2, 1)
 	#intro_screen('Monster Master', 2, 2)
 	#masterMove = distance / (13*fps)
 	#menu_screen((dispHeight / 2) / (13 * fps))	 # 0.34871794871)
+	if music_on:
+		#pygame.mixer.music.load("music/xm/WoA.xm")
+		pygame.mixer.music.load("music/midi/Number One_25 midi.mid")
+		pygame.mixer.music.play(-1, 0)
 	if intro:
 		for y in range(0, 1 * fps):
 			gameDisplay.fill(black)
@@ -209,7 +214,8 @@ def generateLevel():
 				gameDisplay.blit(floor0sImg, (x * 64, y * 64))
 		if not music_changed:
 			if music_on:
-				pygame.mixer.music.load("music/xm/noist_transp.xm")
+				#pygame.mixer.music.load("music/xm/noist_transp.xm")
+				pygame.mixer.music.load("music/midi/Number Two_9 midi.mid")
 				pygame.mixer.music.play(-1, 0)
 			music_changed = True
 	if levelcount == 2:
@@ -219,7 +225,8 @@ def generateLevel():
 				gameDisplay.blit(floor1Img, (x * 128, y * 128))
 		if not music_changed:
 			if music_on:
-				pygame.mixer.music.load("music/xm/nobody.xm")
+				#pygame.mixer.music.load("music/xm/nobody.xm")
+				pygame.mixer.music.load("music/midi/Number Three_11 midi.mid")
 				pygame.mixer.music.play(-1, 0)
 			music_changed = True
 
