@@ -13,6 +13,7 @@ pygame.init()
 pygame.display.set_caption("Monster Master")
 myfont = pygame.font.SysFont("TakaoMincho", 40)
 myfont2 = pygame.font.SysFont("helvet", 16)
+myfont3 = pygame.font.SysFont("TakaoMincho", 24)
 white = (255, 255, 255)
 black = (0, 0, 0)
 red = (255, 0, 0)
@@ -37,7 +38,7 @@ catHeight = 48
 levelcount = 1
 
 catmoveRight = True
-music_on = True
+music_on = False
 victorymusic = True
 gamecomplete = False
 justhit = False
@@ -94,6 +95,8 @@ floor0Img = pygame.image.load('sprite/floor/0.png')
 floor1Img = pygame.image.load('sprite/floor/1.png')
 floor0sImg = pygame.image.load('sprite/floor/0s.png')
 orb = pygame.image.load('sprite/item/orb.png')
+#NPC DE ARU
+npc1Img = pygame.image.load('sprite/npc/npc1.png')
 #nekodearu
 neko1Img = pygame.image.load('sprite/cat/neko1.png')
 neko2Img = pygame.image.load('sprite/cat/neko2.png')
@@ -109,29 +112,29 @@ def text_objects(text, font):
 def introMenu():
 	if music_on:
 		#pygame.mixer.music.load("music/xm/WoA.xm")
-		pygame.mixer.music.load("music/midi/Number One_25 midi.mid")
+		pygame.mixer.music.load("music/xm/WoA.xm")
 		pygame.mixer.music.play(-1, 0)
-	#intro_screen('Static Studio', 2, 0)
-	#intro_screen('Proudly Presents', 2, 1)
-	#intro_screen('Monster Master', 2, 2)
+	intro_screen('Static Studio', 2, 0)
+	intro_screen('Proudly Presents', 2, 1)
+	intro_screen('Monster Master', 2, 2)
 	#masterMove = distance / (13*fps)
 	#menu_screen((dispHeight / 2) / (13 * fps))	 # 0.34871794871)
-	if music_on:
-		#pygame.mixer.music.load("music/xm/WoA.xm")
-		pygame.mixer.music.load("music/midi/Number One_25 midi.mid")
-		pygame.mixer.music.play(-1, 0)
 	if intro:
-		for y in range(0, 1 * fps):
+		for y in range(0, 2 * fps):
 			gameDisplay.fill(black)
 			drawSnow()
 			drawPlanet()
 			#gameDisplay.blit(bg1Img, [0, 0], (0, 3 * 768, 1366, 768))
-			master(master_x, -64 + 13 * y * ((dispHeight / 2) / (13 * fps)), 2)
+			master(master_x, -64 + 13 * y * ((dispHeight / 4) / (13 * fps)), 2)
 			pygame.display.update()
 			clock.tick(fps)
 			inpCtrl()
 			if not intro:
 				break
+		if music_on:
+		#pygame.mixer.music.load("music/xm/WoA.xm")
+			pygame.mixer.music.load("music/midi/nobody's area_46 midi_cut.mid")
+			pygame.mixer.music.play(-1, 0)
 		gameDisplay.blit(bg0Img, [0, 0], (0, 3 * 768, 1366, 768))
 		master(master_x, master_y, 0)
 		pygame.display.update()
@@ -318,10 +321,12 @@ class NPC:
 	def __init__(self):
 		self.x = 0
 		self.y = 0
-		self.appearance = neko1Img
+		self.appearance = npc1Img
+		self.dialogue = ["Hello!", "Nice to meet you.", "What is your name?", "Hendrik.","", "Hello!", ""]#("Hello","Hi")]
+		self.response = ["Hello!", "Nice to meet you too.", "My name is Stefan, what is yours?", "Alright see you around!", "","Hi!", ""]
 
 	def draw(self):
-		gameDisplay.blit(self.appearance, (self.x, self.y))
+		gameDisplay.blit(self.appearance, (self.x, self.y), (0, 0, 32, 64))
 
 
 class Monster:
@@ -407,11 +412,9 @@ def drawPlanet():
 		GParticle.size = 3 / 4 - 1 / 4 * math.sin(GParticle.rangle)
 		#print(GParticle.rangle, GParticle.size, math.sin(GParticle.rangle))
 
-
-NPC001 = NPC()
-NPC002 = NPC()
-NPC003 = NPC()
-NPC004 = NPC()
+NPC1 = NPC()
+NPC1.x = dispWidth // 2
+NPC1.y = dispHeight // 2
 GMaster = Master()
 GMonster = Monster()
 GMaster.name = "Normal"
@@ -429,7 +432,7 @@ def wallColl():
 	x = GMaster.x // (dispWidth // 12) + GMaster.change_x // GMaster.speed + 1
 	y = GMaster.y // (dispHeight // 9) + GMaster.change_y // GMaster.speed + 1
 	#print x, y
-	print  GMaster.change_x // GMaster.speed, GMaster.change_y // GMaster.speed
+	#print  GMaster.change_x // GMaster.speed, GMaster.change_y // GMaster.speed
 	#print len(level)
 	#print len(level[y])
 	if level[y][x] == 'W':
@@ -474,12 +477,12 @@ def menuCtrl():
 				pressed_up = False
 			elif event.key == pygame.K_DOWN:     # down arrow goes down
 				pressed_down = False
-			elif event.key == K_SPACE:
-				spawnMaster()
+			#elif event.key == K_SPACE:
+				#spawnMaster()
 			elif event.key == K_RETURN:
 				if GMaster.y == dispHeight // 2 - 64:
 					menudisplay = False
-				if GMaster.y == dispHeight // 2 + 64:
+				if GMaster.y == dispHeight // 2 + 32:
 					pygame.quit()
 					quit()
 			elif event.key == K_m:
@@ -516,6 +519,8 @@ def menuCtrl():
 		#else:
 		#	GMaster.y = dispHeight - 64
 
+pressed_z = False
+
 
 def inpCtrl():
 	global fullscreen
@@ -524,7 +529,9 @@ def inpCtrl():
 	global pressed_left
 	global pressed_up
 	global pressed_down
+	global pressed_z
 	global intro
+	global menudisplay
 	for event in pygame.event.get():
 		if event.type == pygame.QUIT:
 			pygame.quit()
@@ -546,6 +553,8 @@ def inpCtrl():
 				pressed_up = True
 			elif event.key == pygame.K_DOWN:     # down arrow goes down
 				pressed_down = True
+			elif event.key == pygame.K_z:
+				pressed_z = False
 		elif event.type == pygame.KEYUP:            # check for key releases
 			if event.key == pygame.K_LEFT:        # left arrow turns left
 				pressed_left = False
@@ -565,12 +574,16 @@ def inpCtrl():
 				else:
 					pygame.mixer.music.unpause()
 					music_on = True
+			elif event.key == K_z:
+				pressed_z = True
 			elif event.key == K_ESCAPE:
 				if intro:
 					intro = False
 				elif not intro:
-					pygame.quit()
-					quit()
+					menudisplay = True
+					drawMenu()
+					#pygame.quit()
+					#quit()
 			elif event.key == K_f:
 				if not fullscreen:
 					gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
@@ -713,6 +726,7 @@ def drawWalls(levelcount):
 		"W                       W",
 		"WWWWWWWWWWWWWWWWWWWWWWWWW",
 		]
+		NPC1.draw()
 	if levelcount == 2:
 				level = [
 		"WWWWWWWWWWWWWWWWWWWWWWWWW",
@@ -748,6 +762,13 @@ def drawWalls(levelcount):
 		x = 0
 
 
+def detectPresence(master, npc):
+	if master.x -16 <= npc.x + 16 and master.x + 16 >= npc.x - 16 and master.y - 16 <= npc.y + 16 and master.y + 16 >= npc.y - 16:
+		return True
+	else:
+		return False
+
+
 def spawnMaster():
 	GMaster.x = dispWidth // 2
 	GMaster.y = dispHeight - 64
@@ -755,6 +776,29 @@ def spawnMaster():
 	GMaster.change_x = 0
 	GMaster.change_y = 0
 	GMaster.hitpoints = 3
+
+
+def drawDialogue(NPC, stage):
+	#if stage == 0:
+		#print "lol"
+	dialoguelabel = myfont3.render(NPC.dialogue[stage], 0, red)
+	gameDisplay.blit(dialoguelabel, (NPC.x - dialoguelabel.get_rect().width // 2 + 16, NPC.y - 32))
+	dialoguelabel = myfont3.render(NPC.response[stage], 0, green)
+	gameDisplay.blit(dialoguelabel, (GMaster.x - dialoguelabel.get_rect().width // 2 + 16, GMaster.y - 32))
+	#if stage == 1:
+		#dialoguelabel = myfont3.render("Hello", 0, red)
+		#gameDisplay.blit(dialoguelabel, (NPC.x - 16, NPC.y - 32))
+		#dialoguelabel = myfont3.render("Hi", 0, green)
+		#gameDisplay.blit(dialoguelabel, (GMaster.x, GMaster.y - 32))
+	#if stage == 2:
+		#dialoguelabel = myfont3.render("Nice to meet you I am Frank, what is your name?", 0, red)
+		#gameDisplay.blit(dialoguelabel, (NPC.x - 16, NPC.y - 32))
+		#dialoguelabel = myfont3.render("My memory's gone, who am I?", 0, green)
+		#gameDisplay.blit(dialoguelabel, (GMaster.x, GMaster.y - 32))
+
+
+NPC1dialoguestage = 0
+
 
 while (1):
 	GMaster.name = "Normal"
@@ -799,12 +843,20 @@ while (1):
 					#pygame.mixer.music.play(-1, 0)
 					#mainmusic = True
 			#pygame.draw.line(gameDisplay, white, [0, 640], [1366, 640], 6)
-			gameDisplay.blit(label, (100, 660))
 			#drawPlanet()
 			generateLevel()
 			drawSnow()
 			drawWalls(levelcount)
-			wallColl()
+			if pressed_z:
+				if detectPresence(GMaster, NPC1):
+					pressed_z = False
+					if len(NPC1.dialogue) > NPC1dialoguestage +1:
+						NPC1dialoguestage += 1
+					else:
+						NPC1dialoguestage -= 1
+			if detectPresence(GMaster, NPC1):
+				drawDialogue(NPC1, NPC1dialoguestage)
+			#wallColl()
 			drawHUD()
 			#healthlabel = myfont.render(str(GMaster.hitpoints) + "( )", 1, red)
 			#gameDisplay.blit(healthlabel, (dispWidth - 80, 30))
