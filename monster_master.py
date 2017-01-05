@@ -38,11 +38,11 @@ catHeight = 48
 levelcount = 1
 
 catmoveRight = True
-music_on = False
+music_on = True
 victorymusic = True
 gamecomplete = False
 justhit = False
-fullscreen = False
+fullscreen = True
 intro = True
 mainmusic = True
 music_changed = False
@@ -54,8 +54,9 @@ pressed_up = False
 bgMode = 0
 wallMode = 0
 fps = 60
-dispWidth = 800  # 1366  # 800  # 1366
-dispHeight = 600  # 768  # 600  # 768
+# Regular resolutions seems to work fine, 1366x768 gives performance issues, noticable fps drop, opt for 1280x720 instead
+dispWidth = 1280#800  # 1366  # 800  # 1366
+dispHeight = 720#600  # 768  # 600  # 768
 wallSize = 32
 cellSize = 16
 x_move = 0
@@ -66,11 +67,13 @@ show_inventory = False
 tickcount = 0
 clock = pygame.time.Clock()
 
-gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))
+if fullscreen:
+	gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
+		pygame.FULLSCREEN)
+else:
+	gameDisplay = pygame.display.set_mode((dispWidth, dispHeight))
 iconImg = pygame.image.load("icon32.png")
 pygame.display.set_icon(iconImg)
-#gameDisplay = pygame.display.set_mode((dispWidth, dispHeight),
-#	pygame.FULLSCREEN)
 #image defines
 #master
 master1Img = pygame.image.load('sprite/master/master1.png')		# master sprite
@@ -167,7 +170,12 @@ def drawMenu():
 		TextSurf, TextRect = text_objects("Exit", largeText)
 		TextRect.center = ((dispWidth // 2), (dispHeight // 2 + 48))
 		gameDisplay.blit(TextSurf, TextRect)
+		drawTree(dispWidth // 2, 0, -270, 7)
+		drawTree(dispWidth // 2, dispHeight, -90, 7)
+		drawTree(dispWidth, dispHeight // 2, -180, 10)
+		drawTree(0, dispHeight // 2, -0, 10)
 		pygame.display.update()
+
 
 # actually here should be a timer after which a demo display can be created
 
@@ -281,9 +289,9 @@ class Master:
 		self.manapoints = 16
 		self.maxmp = 16
 		self.experiencepoints = 0
-		self.maxxp = 100
+		self.maxxp = 16
 		self.level = 1
-		self.maxlv = 2
+		self.maxlv = 64
 		# Master's vector
 		self.change_x = 0
 		self.change_y = 0
@@ -413,8 +421,8 @@ def drawPlanet():
 		#print(GParticle.rangle, GParticle.size, math.sin(GParticle.rangle))
 
 NPC1 = NPC()
-NPC1.x = dispWidth // 2
-NPC1.y = dispHeight // 2
+NPC1.x = dispWidth // 2 -16
+NPC1.y = dispHeight // 2 -32
 GMaster = Master()
 GMonster = Monster()
 GMaster.name = "Normal"
@@ -662,7 +670,7 @@ def drawSnow():
 
 def drawHUD():
 	pygame.draw.rect(gameDisplay, black,
-		(8, 16, 20, 64))
+		(dispWidth // 56, dispHeight // 36, 20, 64))
 	#pygame.draw.rect(gameDisplay, black,
 	#	(dispWidth // 24, dispHeight // 32 + 48,
 	#	64, 16))
@@ -750,16 +758,16 @@ def drawWalls(levelcount):
 		"WWWWWWWWWWWWWWWWWWWWWWWWW",
 		]
 	# Parse the level string above. W = wall
-	x = y = 0
-	for row in level:
-		for col in row:
-			if col == "W":
-				Wall((x, y))
-				gameDisplay.blit(wall0Img, (x, y))
-				#pygame.draw.rect(gameDisplay, (255, 255, 255), Wall((x, y)))
-			x += 32
-		y += 32
-		x = 0
+	#x = y = 0
+	#for row in level:
+		#for col in row:
+			#if col == "W":
+				#Wall((x, y))
+				#gameDisplay.blit(wall0Img, (x, y))
+				##pygame.draw.rect(gameDisplay, (255, 255, 255), Wall((x, y)))
+			#x += 32
+		#y += 32
+		#x = 0
 
 
 def detectPresence(master, npc):
@@ -767,6 +775,15 @@ def detectPresence(master, npc):
 		return True
 	else:
 		return False
+
+def drawTree(x1, y1, angle, depth):
+	if depth:
+		x2 = x1 + int(math.cos(math.radians(angle)) * depth * 10.0)
+		y2 = y1 + int(math.sin(math.radians(angle)) * depth * 10.0)
+		pygame.draw.line(gameDisplay, green, (x1, y1), (x2, y2), 2)
+		drawTree(x2, y2, angle - 20, depth - 1)
+		drawTree(x2, y2, angle + 20, depth - 1)
+
 
 
 def spawnMaster():
@@ -779,22 +796,20 @@ def spawnMaster():
 
 
 def drawDialogue(NPC, stage):
-	#if stage == 0:
-		#print "lol"
-	dialoguelabel = myfont3.render(NPC.dialogue[stage], 0, red)
-	gameDisplay.blit(dialoguelabel, (NPC.x - dialoguelabel.get_rect().width // 2 + 16, NPC.y - 32))
-	dialoguelabel = myfont3.render(NPC.response[stage], 0, green)
-	gameDisplay.blit(dialoguelabel, (GMaster.x - dialoguelabel.get_rect().width // 2 + 16, GMaster.y - 32))
-	#if stage == 1:
-		#dialoguelabel = myfont3.render("Hello", 0, red)
-		#gameDisplay.blit(dialoguelabel, (NPC.x - 16, NPC.y - 32))
-		#dialoguelabel = myfont3.render("Hi", 0, green)
-		#gameDisplay.blit(dialoguelabel, (GMaster.x, GMaster.y - 32))
-	#if stage == 2:
-		#dialoguelabel = myfont3.render("Nice to meet you I am Frank, what is your name?", 0, red)
-		#gameDisplay.blit(dialoguelabel, (NPC.x - 16, NPC.y - 32))
-		#dialoguelabel = myfont3.render("My memory's gone, who am I?", 0, green)
-		#gameDisplay.blit(dialoguelabel, (GMaster.x, GMaster.y - 32))
+	global levelcount
+	if levelcount == 1:
+		dialoguelabel = myfont3.render(NPC.dialogue[stage], 0, red)
+		gameDisplay.blit(dialoguelabel, (NPC.x - dialoguelabel.get_rect().width // 2 + 16, NPC.y - 32))
+		dialoguelabel = myfont3.render(NPC.response[stage], 0, green)
+		gameDisplay.blit(dialoguelabel, (GMaster.x - dialoguelabel.get_rect().width // 2 + 16, GMaster.y - 32))
+
+
+def gainXP(Player, xp):
+	Player.experiencepoints += xp
+	if Player.experiencepoints >= Player.maxxp:  # if player levels up
+		Player.level += 1
+		Player.experiencepoints -= Player.maxxp
+		Player.maxxp *= math.sqrt(2)
 
 
 NPC1dialoguestage = 0
@@ -822,7 +837,7 @@ while (1):
 			if levelcount < 2:
 				music_changed = False
 				GMaster.x = 1
-				GMaster.experiencepoints += 3
+				gainXP(GMaster, 3)
 				levelcount += 1
 			#gameDisplay.fill(black)
 			#drawSnow()
@@ -850,7 +865,7 @@ while (1):
 			if pressed_z:
 				if detectPresence(GMaster, NPC1):
 					pressed_z = False
-					if len(NPC1.dialogue) > NPC1dialoguestage +1:
+					if len(NPC1.dialogue) > NPC1dialoguestage + 1:
 						NPC1dialoguestage += 1
 					else:
 						NPC1dialoguestage -= 1
